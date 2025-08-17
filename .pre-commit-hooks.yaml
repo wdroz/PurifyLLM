@@ -1,0 +1,8 @@
+# pre-commit hook definitions for this repository
+- id: purify-llm
+  name: Purify UTF-8 punctuation from LLM output
+  description: Replace curly quotes, em/en dashes, ellipsis, non-breaking spaces, zero-width chars with safe ASCII. Allow extra mappings via args.
+  entry: purifyllm
+  language: python
+  types: [text]
+  pass_filenames: true
