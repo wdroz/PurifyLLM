@@ -11,7 +11,7 @@ DEFAULT_REPLACEMENTS: dict[str, str] = {
     "\u2014": "-",  # em dash
     "\u2212": "-",  # minus sign
     "\u2018": "'",  # left single quotation mark
-    "\u2019": "'",  # right single quotation mark / apostrophe
+    #  "\u2019": "'",  # right single quotation mark / apostrophe
     "\u201C": '"',  # left double quotation mark
     "\u201D": '"',  # right double quotation mark
     "\u00A0": " ",  # no-break space
