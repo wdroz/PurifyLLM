@@ -24,14 +24,9 @@ repos:
   rev: v0.0.1
   hooks:
   - id: purify-llm
-  # optional: ignore folders/files via glob and add extra replacements
+    # optional: ignore folders/files via glob and add extra replacements
+    exclude: '(^|/)(LICENSES|licenses)/'
   args:
-  # ignore everything under any LICENSES/ dir
-  - --ignore-files
-  - '**/LICENSES/**'
-  # ignore a specific vendor subtree
-  - --ignore-files
-  - 'docs/vendor/**'
   # add custom mappings
   - --map
   - "\u00AB=\""   # « to "
@@ -80,5 +75,3 @@ Examples:
 - `--ignore-files '**/LICENSES/**'` ignore any files under a `LICENSES` directory anywhere.
 - `--ignore-files 'docs/vendor/**'` ignore files under `docs/vendor`.
 - `--ignore-files '*.md'` ignore markdown files.
-
-Tip: when used with pre-commit, pass along the filenames from pre-commit and filter undesired directories using these patterns.
