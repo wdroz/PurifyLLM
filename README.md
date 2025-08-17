@@ -21,7 +21,7 @@ Add this repo to your `.pre-commit-config.yaml`:
 ```yaml
 repos:
 - repo: https://github.com/wdroz/PurifyLLM
-  rev: v0.0.1
+  rev: v0.1.1
   hooks:
   - id: purify-llm
     # optional: ignore folders/files via glob and add extra replacements
