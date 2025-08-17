@@ -24,12 +24,19 @@ repos:
   rev: v0.0.1
   hooks:
   - id: purify-llm
-    # optional: add extra replacements
-    args:
-    - --map
-    - "\u00AB=\""   # « to "
-    - --map
-    - "\u00BB=\""   # » to "
+  # optional: ignore folders/files via glob and add extra replacements
+  args:
+  # ignore everything under any LICENSES/ dir
+  - --ignore-files
+  - '**/LICENSES/**'
+  # ignore a specific vendor subtree
+  - --ignore-files
+  - 'docs/vendor/**'
+  # add custom mappings
+  - --map
+  - "\u00AB=\""   # « to "
+  - --map
+  - "\u00BB=\""   # » to "
 ```
 
 Then install hooks:
@@ -47,7 +54,7 @@ pre-commit run --all-files
 ## CLI usage
 
 ```bash
-purifyllm [--no-defaults] [--map KEY=VALUE ...] [FILES ...]
+purifyllm [--no-defaults] [--map KEY=VALUE ...] [--ignore-files GLOB ...] [FILES ...]
 ```
 
 Examples:
@@ -56,9 +63,22 @@ Examples:
 purifyllm README.md
 purifyllm --map "\u00B7=-" file.txt
 purifyllm --no-defaults --map "…=..." --map "—=-" src/
+purifyllm --ignore-files '**/LICENSES/**' --ignore-files 'docs/vendor/**' $(git ls-files)
 ```
 
 Exit codes:
 
 - 0: no changes needed
 - 1: files were modified or an error occurred
+
+### Ignoring files and folders (glob)
+
+Use one or more `--ignore-files` flags to skip files by glob pattern. Matching is against the full path using forward slashes.
+
+Examples:
+
+- `--ignore-files '**/LICENSES/**'` ignore any files under a `LICENSES` directory anywhere.
+- `--ignore-files 'docs/vendor/**'` ignore files under `docs/vendor`.
+- `--ignore-files '*.md'` ignore markdown files.
+
+Tip: when used with pre-commit, pass along the filenames from pre-commit and filter undesired directories using these patterns.

@@ -55,3 +55,38 @@ def test_multiple_files_exit_code(tmp_path: Path) -> None:
 def test_no_files_returns_zero() -> None:
 	assert main([]) == 0
 
+
+def test_ignore_files_by_dirname_glob(tmp_path: Path) -> None:
+	# Create a directory named LICENSES and a file inside
+	d = tmp_path / "LICENSES"
+	d.mkdir()
+	f = d / "notice.txt"
+	write(f, "dash: \u2014\n")
+
+	# same content in allowed dir
+	g = tmp_path / "src" / "file.txt"
+	g.parent.mkdir(parents=True)
+	write(g, "dash: \u2014\n")
+
+	rc = main(["--ignore-files", "**/LICENSES/**", str(f), str(g)])
+	# g should be modified, f skipped
+	assert rc == 1
+	assert read(f) == "dash: \u2014\n"
+	assert read(g) == "dash: -\n"
+
+
+def test_ignore_files_by_subpath_glob(tmp_path: Path) -> None:
+	d = tmp_path / "docs" / "vendor"
+	d.mkdir(parents=True)
+	f = d / "x.txt"
+	write(f, "…\n")
+
+	other = tmp_path / "docs" / "ours" / "y.txt"
+	other.parent.mkdir(parents=True)
+	write(other, "…\n")
+
+	rc = main(["--ignore-files", "docs/vendor/**", str(f), str(other)])
+	assert rc == 1
+	assert read(f) == "…\n"  # ignored
+	assert read(other) == "...\n"  # processed
+

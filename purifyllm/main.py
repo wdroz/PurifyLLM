@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 
 # default replacements for common "smart" characters often produced by LLMs
@@ -54,6 +54,16 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Files to process (provided by pre-commit).",
     )
     p.add_argument(
+        "--ignore-files",
+        dest="ignore_files",
+        action="append",
+        default=[],
+        help=(
+            "Glob pattern of files to ignore (repeatable). Matches against the full path. "
+            "Examples: --ignore-files 'LICENSES/**' --ignore-files '**/vendor/**' --ignore-files '*.md'"
+        ),
+    )
+    p.add_argument(
         "--no-defaults",
         action="store_true",
         help="Disable default replacement mappings and use only custom --map entries.",
@@ -97,6 +107,35 @@ def _load_text(path: Path) -> str | None:
         return None
 
 
+def _ignored_by_globs(path: Path, patterns: list[str]) -> bool:
+    """Return True if the file path matches any ignore glob pattern.
+
+    Matching rules:
+    - Patterns are POSIX-style globs (supporting **, *, ?).
+    - Matched against the full path using forward slashes.
+    - For convenience, also try with an implicit "**/" prefix so that
+      patterns like "docs/vendor/**" match anywhere in the path.
+    - A trailing slash in the pattern is treated as a directory and expanded
+      to match all files under it (appends "**").
+    """
+    posix = PurePosixPath(path.as_posix())
+    for raw in patterns or []:
+        if not raw:
+            continue
+        pat = raw
+        # Treat trailing slash as directory
+        if pat.endswith("/"):
+            pat = pat + "**"
+        # first try as-is
+        if posix.match(pat):
+            return True
+        # also try with implicit **/ prefix (unless already anchored)
+        imp = "**/" + pat.lstrip("/")
+        if posix.match(imp):
+            return True
+    return False
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_arg_parser()
     ns = parser.parse_args(argv)
@@ -115,6 +154,8 @@ def main(argv: list[str] | None = None) -> int:
     for filename in ns.filenames:
         path = Path(filename)
         if not path.is_file():
+            continue
+        if _ignored_by_globs(path, ns.ignore_files):
             continue
         content = _load_text(path)
         if content is None:
